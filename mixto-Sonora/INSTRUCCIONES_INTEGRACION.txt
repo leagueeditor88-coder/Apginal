@@ -1,0 +1,12 @@
+AUTOMIX — ARCHIVOS NECESARIOS (BÚSQUEDA WEB DE GÉNEROS)
+
+Contenido:
+- GenreWebLookup.kt: consulta HTML de DuckDuckGo; no usa API musical ni clave.
+- GenreIdentificationWorker.kt: procesamiento de identificación en segundo plano.
+- MainActivity.kt: interfaz e indicador de progreso con la corrección de Compose incluida en el parche de compilación.
+- AutomixService.kt: servicio integrado que acompaña este bloque.
+- app/build.gradle.kts: configuración usada por el bloque para las dependencias del worker.
+
+Integración: copiar los archivos respetando las rutas dentro de app/. Revisa diferencias antes de sobrescribir si tu rama tiene cambios posteriores.
+
+Alcance: este ZIP reúne los archivos de la búsqueda web de géneros y las correcciones de compilación disponibles. No confirma que todas las vistas de biblioteca ni el interruptor de aleatorio estén ya corregidos. El buscador puede bloquear consultas automatizadas y la clasificación por fragmentos HTML es heurística; debe probarse en GitHub Actions y en el dispositivo.

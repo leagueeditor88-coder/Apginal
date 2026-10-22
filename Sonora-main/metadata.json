@@ -1,0 +1,6 @@
+{
+  "name": "SonoraGenre - Detector de Género Musical",
+  "description": "Determina el género musical de cualquier canción automáticamente a partir de su título mediante bases de datos externas y análisis musical.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

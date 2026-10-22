@@ -1,0 +1,8 @@
+{
+  "appId": "com.sonoragenre.musicdetector",
+  "appName": "SonoraGenre",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

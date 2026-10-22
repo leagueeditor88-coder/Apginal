@@ -1,0 +1,76 @@
+name: Compilar APK Android
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: Compilar APK con Capacitor y Gradle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v4
+
+      # Capacitor 8 exige Node >= 22.
+      # NOTA: no se usa `cache: 'npm'` porque requiere package-lock.json.
+      # Cuando subas el package-lock.json al repo, puedes agregar `cache: 'npm'`
+      # y cambiar `npm install` por `npm ci`.
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+
+      - name: Ejecutar pruebas unitarias
+        run: npm test
+
+      - name: Compilar aplicación web (Vite)
+        run: npm run build
+
+      # Capacitor 8 (AGP/Gradle recientes) requiere JDK 21.
+      - name: Configurar Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # El valor por defecto de `packages` incluye el paquete obsoleto `tools`,
+      # que el sdkmanager actual de los runners ya no encuentra. Se instala solo
+      # platform-tools; Gradle descarga el resto (platforms/build-tools) solo.
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Crear plataforma Android (si no existe) y sincronizar
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Dar permisos de ejecución a Gradle
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK en modo Debug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Subir APK como artefacto descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoraGenre-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
