@@ -33,6 +33,42 @@ class GenreIdentificationWorker(appContext: Context, params: WorkerParameters) :
 
     private data class Item(val uri: Uri, val title: String, val artist: String, val album: String)
 
+    private fun readLibrary(): List<Item> {
+        val resolver = applicationContext.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.IS_MUSIC
+        )
+        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
+        val list = mutableListOf<Item>()
+        try {
+            resolver.query(uri, projection, selection, null, sortOrder)?.use { cursor ->
+                val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+                val titleCol = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+                val artistCol = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val albumCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+
+                while (cursor.moveToNext()) {
+                    val id = if (idCol >= 0) cursor.getLong(idCol) else continue
+                    val trackUri = ContentUris.withAppendedId(uri, id)
+                    val title = if (titleCol >= 0) cursor.getString(titleCol) ?: "Sin título" else "Sin título"
+                    val artist = if (artistCol >= 0) cursor.getString(artistCol)?.takeIf { it != "<unknown>" } ?: "Artista desconocido" else "Artista desconocido"
+                    val album = if (albumCol >= 0) cursor.getString(albumCol) ?: "" else ""
+                    list.add(Item(trackUri, title, artist, album))
+                }
+            }
+        } catch (e: Exception) {
+            // Error reading media library
+        }
+        return list
+    }
+
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val prefs = applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val sonoraBaseUrl = prefs.getString(SONORA_URL_PREF, "").orEmpty().trim().trimEnd('/')
