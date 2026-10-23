@@ -744,15 +744,7 @@ private fun playAt(index: Int) {
             ensurePermissions()
             return
         }
-        val sonoraUrl = prefs.getString("sonora_api_url", "").orEmpty().trim()
-        if (sonoraUrl.isBlank()) {
-            Toast.makeText(this, "Configura la dirección de la API de Sonora en Ajustes", Toast.LENGTH_LONG).show()
-            pushState { it.copy(genreScanStatus = "Falta configurar la dirección de Sonora") }
-            return
-        }
-        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val request = OneTimeWorkRequestBuilder<GenreIdentificationWorker>()
-            .setConstraints(constraints)
             .build()
         WorkManager.getInstance(this).enqueueUniqueWork(
             GenreIdentificationWorker.UNIQUE_WORK_NAME,
@@ -1946,30 +1938,10 @@ fun SettingsScreen(
         Text("Ajustes", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
         Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-            var apiUrlInput by remember(sonoraApiUrl) { mutableStateOf(sonoraApiUrl) }
-            var savedUrlStatus by remember(sonoraApiUrl) { mutableStateOf(sonoraApiUrl.isNotBlank()) }
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Reconocimiento musical · Sonora", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Mixto envía solo el título a Sonora. Sonora también está incluido en este APK; el servidor externo es opcional para el análisis ampliado.", fontSize = 13.sp)
-                OutlinedTextField(
-                    value = apiUrlInput,
-                    onValueChange = { apiUrlInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("URL base de la API de Sonora") },
-                    placeholder = { Text("https://tu-servidor-sonora.example") },
-                    singleLine = true
-                )
-                Button(onClick = { onSaveSonoraApiUrl(apiUrlInput); savedUrlStatus = apiUrlInput.isNotBlank() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Guardar dirección")
-                }
-                OutlinedButton(onClick = { apiUrlInput = ""; savedUrlStatus = false; onSaveSonoraApiUrl("") }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Borrar dirección guardada")
-                }
-                Text(
-                    if (savedUrlStatus) "Dirección guardada. En Biblioteca, pulsa Identificar géneros para procesar los títulos con Sonora." else "Opcional: si publicas el servidor completo de Sonora, introduce aquí su URL para obtener su análisis ampliado. Sin servidor, Mixto usa el respaldo de catálogo integrado.",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text("Reconocimiento musical · Sonora Integrado", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Motor Sonora 100% nativo. No requiere configurar servidores externos ni claves API. Reconoce y desambigua los géneros reales de tu biblioteca automáticamente a partir de los títulos.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Estado: Motor nativo activo y listo. Sin depender de APIs externas.", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         }
 
